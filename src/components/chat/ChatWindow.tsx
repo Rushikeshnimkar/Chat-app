@@ -11,14 +11,6 @@ interface ChatWindowProps {
   currentUserEmail: string;
 }
 
-// Define the message schema type
-interface Message {
-  id: string;
-  content: string;
-  senderId: string;
-  receiverId: string;
-  createdAt: number; // Using createdAt instead of timestamp
-}
 
 export const ChatWindow: React.FC<ChatWindowProps> = ({
   selectedContact,

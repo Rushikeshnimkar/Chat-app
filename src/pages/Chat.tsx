@@ -1,6 +1,6 @@
 // Chat Component
-import React, { useEffect, useState } from 'react';
-import { id, init } from '@instantdb/react';
+import  { useEffect, useState } from 'react';
+import {  init } from '@instantdb/react';
 import { useNavigate } from 'react-router-dom';
 import { ContactList } from '../components/chat/ContactList';
 import { ChatWindow } from '../components/chat/ChatWindow';

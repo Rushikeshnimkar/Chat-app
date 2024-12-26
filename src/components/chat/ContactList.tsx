@@ -3,7 +3,7 @@ import { PlusCircle, Search, User, Circle } from 'lucide-react';
 import { Contact, Profile } from '../../types';
 import { useNavigate } from 'react-router-dom';
 import { init } from '@instantdb/react';
-import toast from 'react-hot-toast';
+
 
 const db = init({ appId: import.meta.env.VITE_INSTANT_APP_ID });
 

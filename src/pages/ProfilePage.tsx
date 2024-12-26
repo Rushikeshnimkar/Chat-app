@@ -1,6 +1,6 @@
-import React, { useState, useEffect, ChangeEvent, FormEvent } from 'react';
-import { init, lookup, id } from '@instantdb/react';
-import { Camera, Loader, ArrowLeft } from 'lucide-react';
+import  { useState, useEffect, FormEvent } from 'react';
+import { init,  id } from '@instantdb/react';
+import {  Loader } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 interface Profile {
