@@ -7,7 +7,7 @@ const db = init({ appId: import.meta.env.VITE_INSTANT_APP_ID });
 
 const Signup = () => {
   const navigate = useNavigate();
-  const [step, setStep] = useState('email'); // 'email' or 'verify' or 'success'
+  const [step, setStep] = useState('email'); 
   const [email, setEmail] = useState('');
   const [code, setCode] = useState('');
   const [loading, setLoading] = useState(false);

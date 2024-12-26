@@ -1,8 +1,10 @@
-import React, { useRef, useEffect } from 'react';
-import { Send } from 'lucide-react';
+import React, { useRef, useEffect, useState } from 'react';
+import { Send, Globe } from 'lucide-react';
 import { Contact } from '../../types';
 import { id, init } from '@instantdb/react';
 import toast from 'react-hot-toast';
+import { translationService } from '../../services/translationService';
+import { LanguageSelector } from '../common/LanguageSelector';
 
 const db = init({ appId: import.meta.env.VITE_INSTANT_APP_ID });
 
@@ -11,12 +13,13 @@ interface ChatWindowProps {
   currentUserEmail: string;
 }
 
-
 export const ChatWindow: React.FC<ChatWindowProps> = ({
   selectedContact,
   currentUserEmail
 }) => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const [translatedMessages, setTranslatedMessages] = useState<Record<string, string>>({});
+  const [targetLanguage, setTargetLanguage] = useState('es');
 
   // Modified query to use createdAt field instead of timestamp
   const { data, isLoading, error } = db.useQuery({
@@ -78,6 +81,31 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
     }
   };
 
+  const handleTranslateMessage = async (messageId: string, content: string) => {
+    try {
+      if (!translationService.isInitialized()) {
+        await translationService.init('en', targetLanguage);
+      }
+
+      const translatedText = await translationService.translate(content);
+      setTranslatedMessages(prev => ({
+        ...prev,
+        [messageId]: translatedText
+      }));
+    } catch (error) {
+      console.error('Translation error:', error);
+      toast.error('Failed to translate message');
+    }
+  };
+
+  const handleLanguageChange = async (language: string) => {
+    setTargetLanguage(language);
+    // Clear previous translations when language changes
+    setTranslatedMessages({});
+    // Reinitialize translator with new language
+    await translationService.init('en', language);
+  };
+
   if (error) {
     console.error('Message loading error:', error);
     return (
@@ -97,18 +125,22 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
     <div className="flex-1 flex flex-col h-screen max-h-screen">
       {selectedContact ? (
         <>
-          <div className="p-4 bg-white border-b flex items-center">
-            <h2 className="font-semibold text-lg flex-1">{selectedContact.name}</h2>
+          <div className="p-4 bg-white border-b flex items-center justify-between">
+            <h2 className="font-semibold text-lg">{selectedContact.name}</h2>
+            <LanguageSelector 
+              onLanguageChange={handleLanguageChange}
+              currentLanguage={targetLanguage}
+            />
           </div>
 
           <div className="flex-1 overflow-y-auto p-4 space-y-4">
             {isLoading ? (
               <p className="text-center text-gray-500">Loading messages...</p>
-            ) : sortedMessages.length ? (
-              sortedMessages.map((msg) => (
+            ) : data?.messages?.length ? (
+              data.messages.map((msg) => (
                 <div 
                   key={msg.id}
-                  className={`flex ${msg.senderId === currentUserEmail ? 'justify-end' : 'justify-start'}`}
+                  className={`flex flex-col ${msg.senderId === currentUserEmail ? 'items-end' : 'items-start'}`}
                 >
                   <div 
                     className={`
@@ -120,10 +152,34 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
                     `}
                   >
                     <p className="text-sm">{msg.content}</p>
-                    <div className={`text-xs mt-1 ${msg.senderId === currentUserEmail ? 'text-blue-100' : 'text-gray-500'}`}>
-                      {new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    <div className="flex justify-between items-center mt-1">
+                      <span className={`text-xs ${msg.senderId === currentUserEmail ? 'text-blue-100' : 'text-gray-500'}`}>
+                        {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      </span>
+                      <button
+                        onClick={() => handleTranslateMessage(msg.id, msg.content)}
+                        className={`ml-2 p-1 rounded-full hover:bg-opacity-20 hover:bg-black transition-colors
+                          ${msg.senderId === currentUserEmail ? 'text-blue-100' : 'text-gray-500'}`}
+                      >
+                        <Globe size={16} />
+                      </button>
                     </div>
                   </div>
+                  {/* Translated message */}
+                  {translatedMessages[msg.id] && (
+                    <div 
+                      className={`
+                        mt-1 max-w-[100%] sm:max-w-[70%] md:max-w-[80%] break-words whitespace-pre-wrap rounded-lg p-2
+                        ${msg.senderId === currentUserEmail 
+                          ? 'bg-blue-100 text-blue-900 rounded-br-none' 
+                          : 'bg-gray-100 text-gray-900 rounded-bl-none'
+                        }
+                      `}
+                    >
+                      <p className="text-sm">{translatedMessages[msg.id]}</p>
+                      <span className="text-xs text-gray-500">Translated to {targetLanguage.toUpperCase()}</span>
+                    </div>
+                  )}
                 </div>
               ))
             ) : (
