@@ -1,10 +1,13 @@
-import  { useState, useEffect, FormEvent } from 'react';
-import { init,  id } from '@instantdb/react';
-import {  Loader } from 'lucide-react';
+import { useState, useEffect, FormEvent } from 'react';
+import { init, id } from '@instantdb/react';
+import { Loader, ArrowLeft, LogOut, Phone, User, Mail } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useDarkMode } from '../context/DarkModeContext';
+import toast from 'react-hot-toast';
+import { Toaster } from 'react-hot-toast';
 
 interface Profile {
-  id?: string; 
+  id?: string;
   email: string;
   username: string;
   phoneNumber: string;
@@ -13,18 +16,13 @@ interface Profile {
 }
 
 
-interface UpdateMessage {
-  type: 'success' | 'error' | '';
-  message: string;
-}
-
-
 
 const db = init({ appId: import.meta.env.VITE_INSTANT_APP_ID });
 
 const ProfilePage = () => {
   const navigate = useNavigate();
-  const { isLoading: authLoading, user } = db.useAuth();
+  const { isDarkMode } = useDarkMode();
+  const { user } = db.useAuth();
   const [profile, setProfile] = useState<Profile>({
     email: '',
     username: '',
@@ -32,9 +30,8 @@ const ProfilePage = () => {
     imageUrl: ''
   });
   const [isUpdating, setIsUpdating] = useState(false);
-  const [updateMessage, setUpdateMessage] = useState<UpdateMessage>({ type: '', message: '' });
-
-  const { data, error, isLoading: queryLoading } = db.useQuery({
+  
+  const { data } = db.useQuery({
     profiles: {
       $: {
         where: {
@@ -43,37 +40,20 @@ const ProfilePage = () => {
       }
     }
   });
-  
-  // Add logging for debugging
+
   useEffect(() => {
-    // Log auth state
-    console.log('Auth state:', { 
-      user, 
-      authLoading, 
-      timestamp: new Date().toISOString() 
-    });
-  
-    // Log query results
-    console.log('Query results:', {
-      data,
-      error,
-      profileFound: Boolean(data?.profiles?.[0])
-    });
-  
     if (data?.profiles?.[0]) {
       const userProfile = data.profiles[0];
-      console.log('Profile details:', {
+      setProfile({
         id: userProfile.id,
-        username: userProfile.username,
         email: userProfile.email,
-        phoneNumber: userProfile.phoneNumber,
-        lastUpdated: new Date(userProfile.lastUpdated || 0).toISOString()
+        username: userProfile.username || '',
+        phoneNumber: userProfile.phoneNumber || '',
+        imageUrl: userProfile.imageUrl || '',
+        lastUpdated: userProfile.lastUpdated
       });
     }
-  }, [data, user, authLoading, queryLoading, error]);
-
-  
-  
+  }, [data]);
 
   useEffect(() => {
     if (profile.username) {
@@ -93,147 +73,250 @@ const ProfilePage = () => {
         throw new Error('User email not found');
       }
 
-      setIsUpdating(true);
+      // Validate username if it's a new profile
+      if (!data?.profiles?.[0]?.username && !profile.username.trim()) {
+        throw new Error('Username is required');
+      }
 
-      // Create new profile ID if doesn't exist
+      setIsUpdating(true);
       const profileId = data?.profiles?.[0]?.id || id();
 
       await db.transact([
         db.tx.profiles[profileId].update({
           email: user.email,
-          username: profile.username.trim(),
+          // Only include username in the update if it's not already set
+          ...(data?.profiles?.[0]?.username ? {} : { username: profile.username.trim() }),
           phoneNumber: profile.phoneNumber.trim(),
           imageUrl: `https://robohash.org/${encodeURIComponent(profile.username.trim())}?set=set3`,
           lastUpdated: Date.now()
         })
       ]);
 
-        setUpdateMessage({
-          type: 'success',
-          message: 'Profile updated successfully!'
-        });
-
-        setTimeout(() => navigate('/chat'), 1500);
-      }
-    catch (err) {
-      console.error('Profile update error:', { err, profileData: data?.profiles });
-      setUpdateMessage({
-        type: 'error',
-        message: err instanceof Error ? err.message : 'Failed to update profile'
+      toast.success('Profile updated successfully!', {
+        duration: 4000,
+        position: 'top-center',
+        style: {
+          background: isDarkMode ? '#1f2937' : '#ffffff',
+          color: isDarkMode ? '#e5e7eb' : '#1f2937',
+          border: `1px solid ${isDarkMode ? '#374151' : '#e5e7eb'}`,
+          paddingLeft: '16px',
+          paddingRight: '16px',
+        },
+        icon: '👍',
       });
-    }
-  };
 
-
-  const handleSignOut = async () => {
-    try {
-      setIsUpdating(true);
-      await db.auth.signOut();
-      navigate('/signup');
+      setTimeout(() => navigate('/chat'), 2000);
     } catch (err) {
-      console.error('Signout error:', err);
-      setUpdateMessage({
-        type: 'error',
-        message: 'Failed to sign out'
-      });
+      console.error('Profile update error:', err);
+      toast.error(err instanceof Error ? err.message : 'Failed to update profile');
     } finally {
       setIsUpdating(false);
     }
   };
+
+  const handleSignOut = async () => {
+    try {
+      await db.auth.signOut();
+      navigate('/');
+    } catch (error) {
+      console.error('Sign out error:', error);
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md mx-auto bg-white rounded-lg shadow p-8">
-      <div className="flex justify-end mb-4">
+    <div className={`min-h-screen ${isDarkMode ? 'bg-zinc-900' : 'bg-gray-50'}`}>
+      <Toaster
+        toastOptions={{
+          className: '',
+          style: {
+            borderRadius: '10px',
+            background: isDarkMode ? '#1f2937' : '#ffffff',
+            color: isDarkMode ? '#e5e7eb' : '#1f2937',
+          },
+        }}
+      />
+      
+      {/* Header */}
+      <header className={`sticky top-0 z-10 backdrop-blur-sm border-b ${
+        isDarkMode ? 'bg-zinc-900/80 border-zinc-800' : 'bg-white/80 border-gray-100'
+      }`}>
+        <div className="max-w-2xl mx-auto px-4 py-4 flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <button
+              onClick={() => navigate('/chat')}
+              className={`p-2.5 rounded-xl transition-colors ${
+                isDarkMode 
+                  ? 'text-gray-400 hover:text-gray-200 hover:bg-zinc-800' 
+                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+              }`}
+            >
+              <ArrowLeft size={20} />
+            </button>
+            <h1 className={`text-xl font-bold ${
+              isDarkMode ? 'text-gray-200' : 'text-gray-900'
+            }`}>
+              Profile Settings
+            </h1>
+          </div>
+          
           <button
             onClick={handleSignOut}
-            disabled={isUpdating}
-            className="text-red-600 hover:text-red-800"
+            className={`flex items-center gap-2 px-4 py-2 rounded-xl transition-colors ${
+              isDarkMode
+                ? 'text-red-400 hover:bg-red-500/10'
+                : 'text-red-600 hover:bg-red-50'
+            }`}
           >
-            Sign Out
+            <LogOut size={18} />
+            <span className="text-sm font-medium">Sign Out</span>
           </button>
         </div>
-        <h2 className="text-2xl font-bold text-center mb-8">Profile Settings</h2>
+      </header>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Profile Image */}
-          <div className="flex flex-col items-center">
-            <div className="relative">
-              <div className="w-32 h-32 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden">
-              <img 
-          src={profile.imageUrl || `https://robohash.org/${encodeURIComponent(profile.username || 'default')}?set=set3`}
-          alt="Profile" 
-          className="w-full h-full object-cover"
-        />
+      <div className="max-w-2xl mx-auto px-4 py-8">
+        {/* Profile Avatar Section */}
+        <div className={`mb-8 p-8 rounded-2xl text-center ${
+          isDarkMode ? 'bg-zinc-800/50' : 'bg-white'
+        } shadow-lg`}>
+          <div className="relative inline-block">
+            <img
+              src={`https://robohash.org/${encodeURIComponent(profile.username || 'default')}?set=set3`}
+              alt="Profile"
+              className="w-32 h-32 rounded-full mx-auto mb-4"
+            />
+          </div>
+          <h2 className={`text-2xl font-bold mb-2 ${
+            isDarkMode ? 'text-white' : 'text-gray-900'
+          }`}>
+            {profile.username || 'New User'}
+          </h2>
+          <p className={`${
+            isDarkMode ? 'text-gray-400' : 'text-gray-600'
+          }`}>
+            {profile.email}
+          </p>
+        </div>
+
+        {/* Profile Form */}
+        <div className={`rounded-2xl ${
+          isDarkMode ? 'bg-zinc-800/50' : 'bg-white'
+        } shadow-lg`}>
+          <form onSubmit={handleSubmit} className="p-8 space-y-6">
+            {/* Email Field (Read-only) */}
+            <div>
+              <label className={`block text-sm font-medium mb-2 ${
+                isDarkMode ? 'text-gray-300' : 'text-gray-700'
+              }`}>
+                Email Address
+              </label>
+              <div className="relative">
+                <Mail className={`absolute left-4 top-3 ${
+                  isDarkMode ? 'text-gray-500' : 'text-gray-400'
+                }`} size={18} />
+                <input
+                  type="email"
+                  value={profile.email}
+                  disabled
+                  className={`w-full pl-12 pr-4 py-2.5 rounded-xl border ${
+                    isDarkMode 
+                      ? 'bg-zinc-900/50 border-zinc-700 text-gray-400' 
+                      : 'bg-gray-50 border-gray-200 text-gray-500'
+                  } cursor-not-allowed`}
+                />
               </div>
-              
             </div>
-          </div>
 
-          {/* Email (Read-only) */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700">
-              Email
-            </label>
-            <input
-              type="email"
-              value={user?.email || ''}
-              disabled
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm bg-gray-50"
-            />
-          </div>
-
-          {/* Username */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700">
-              Username
-            </label>
-            <input
-              type="text"
-              value={profile.username}
-              onChange={(e) => setProfile(prev => ({ ...prev, username: e.target.value }))}
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
-              required
-            />
-          </div>
-
-          {/* Phone Number */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700">
-              Phone Number
-            </label>
-            <input
-              type="tel"
-              value={profile.phoneNumber}
-              onChange={(e) => setProfile(prev => ({ ...prev, phoneNumber: e.target.value }))}
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
-              required
-            />
-          </div>
-
-          {/* Update Message */}
-          {updateMessage.message && (
-            <div className={`p-3 rounded ${
-              updateMessage.type === 'success' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
-            }`}>
-              {updateMessage.message}
+            {/* Username field */}
+            <div>
+              <label className={`block text-sm font-medium mb-2 ${
+                isDarkMode ? 'text-gray-300' : 'text-gray-700'
+              }`}>
+                Username {!data?.profiles?.[0]?.username && <span className="text-red-500">*</span>}
+              </label>
+              <div className="relative">
+                <User className={`absolute left-4 top-3 ${
+                  isDarkMode ? 'text-gray-500' : 'text-gray-400'
+                }`} size={18} />
+                <input
+                  type="text"
+                  value={profile.username}
+                  onChange={(e) => setProfile(prev => ({ ...prev, username: e.target.value }))}
+                  className={`w-full pl-12 pr-4 py-2.5 rounded-xl border transition-colors ${
+                    isDarkMode 
+                      ? 'bg-zinc-900/50 border-zinc-700 text-gray-200' 
+                      : 'bg-white border-gray-200 text-gray-900'
+                  } ${
+                    data?.profiles?.[0]?.username 
+                      ? 'opacity-75 cursor-not-allowed' 
+                      : isDarkMode 
+                        ? 'focus:border-violet-500' 
+                        : 'focus:border-blue-500'
+                  } focus:ring-2 ${
+                    isDarkMode ? 'focus:ring-violet-500/20' : 'focus:ring-blue-500/20'
+                  }`}
+                  disabled={!!data?.profiles?.[0]?.username}
+                  required={!data?.profiles?.[0]?.username}
+                  placeholder={data?.profiles?.[0]?.username ? undefined : "Choose a username"}
+                />
+              </div>
+              {!data?.profiles?.[0]?.username && (
+                <p className={`mt-2 text-sm ${
+                  isDarkMode ? 'text-gray-400' : 'text-gray-500'
+                }`}>
+                  Choose carefully - username cannot be changed later
+                </p>
+              )}
             </div>
-          )}
 
-          {/* Submit Button */}
-          <button
-            type="submit"
-            disabled={isUpdating}
-            className={`w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white ${
-              isUpdating ? 'bg-blue-400' : 'bg-blue-600 hover:bg-blue-700'
-            } focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500`}
-          >
-            {isUpdating ? (
-              <Loader className="animate-spin" size={20} />
-            ) : (
-              'Update Profile'
-            )}
-          </button>
-        </form>
+            {/* Phone Number */}
+            <div>
+              <label className={`block text-sm font-medium mb-2 ${
+                isDarkMode ? 'text-gray-300' : 'text-gray-700'
+              }`}>
+                Phone Number
+              </label>
+              <div className="relative">
+                <Phone className={`absolute left-4 top-3 ${
+                  isDarkMode ? 'text-gray-500' : 'text-gray-400'
+                }`} size={18} />
+                <input
+                  type="tel"
+                  value={profile.phoneNumber}
+                  onChange={(e) => setProfile(prev => ({ ...prev, phoneNumber: e.target.value }))}
+                  className={`w-full pl-12 pr-4 py-2.5 rounded-xl border transition-colors ${
+                    isDarkMode 
+                      ? 'bg-zinc-900/50 border-zinc-700 text-gray-200 focus:border-violet-500' 
+                      : 'bg-white border-gray-200 text-gray-900 focus:border-blue-500'
+                  } focus:ring-2 ${
+                    isDarkMode ? 'focus:ring-violet-500/20' : 'focus:ring-blue-500/20'
+                  }`}
+                  placeholder="Enter your phone number"
+                />
+              </div>
+            </div>
+
+            {/* Submit Button */}
+            <button
+              type="submit"
+              disabled={isUpdating}
+              className={`w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl 
+                font-medium transition-colors ${
+                isDarkMode
+                  ? 'bg-violet-600 hover:bg-violet-700 disabled:bg-violet-600/50'
+                  : 'bg-blue-500 hover:bg-blue-600 disabled:bg-blue-400'
+              } text-white`}
+            >
+              {isUpdating ? (
+                <>
+                  <Loader className="animate-spin" size={18} />
+                  <span>Updating Profile...</span>
+                </>
+              ) : (
+                'Save Changes'
+              )}
+            </button>
+          </form>
+        </div>
       </div>
     </div>
   );

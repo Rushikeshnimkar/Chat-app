@@ -60,13 +60,28 @@ const Signup: React.FC = () => {
   return (
     <div className={`min-h-screen flex flex-col items-center justify-center px-4 sm:px-6 lg:px-8 
       ${isDarkMode ? 'bg-zinc-900' : 'bg-gray-50'}`}>
+      <div className="absolute top-4 left-4">
+        <button
+          onClick={() => navigate('/')}
+          className={`p-2 rounded-full ${
+            isDarkMode 
+              ? 'bg-zinc-800 hover:bg-zinc-700 text-gray-300' 
+              : 'bg-white hover:bg-gray-100 text-gray-700'
+          } transition-colors duration-200 shadow-lg`}
+        >
+          <ArrowLeft className="w-6 h-6" />
+        </button>
+      </div>
+
       <div className={`w-full max-w-md space-y-8 ${isDarkMode ? 'bg-zinc-800' : 'bg-white'} 
-        p-8 rounded-2xl shadow-xl`}>
+        p-8 rounded-2xl shadow-xl border ${isDarkMode ? 'border-zinc-700' : 'border-gray-100'}`}>
         
         {/* Header */}
         <div className="text-center">
           <div className="flex justify-center mb-6">
-            <MessageCircle className={`w-12 h-12 ${isDarkMode ? 'text-violet-400' : 'text-violet-600'}`} />
+            <div className={`p-4 rounded-full ${isDarkMode ? 'bg-violet-900/30' : 'bg-violet-50'}`}>
+              <MessageCircle className={`w-12 h-12 ${isDarkMode ? 'text-violet-400' : 'text-violet-600'}`} />
+            </div>
           </div>
           <h2 className={`text-3xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
             {step === 'email' ? 'Get Started' : step === 'verify' ? 'Verify Email' : 'Welcome!'}
@@ -121,7 +136,7 @@ const Signup: React.FC = () => {
                     Email address
                   </label>
                   <div className="mt-1 relative">
-                    <Mail className={`absolute left-3 top-3 h-5 w-5 ${isDarkMode ? 'text-gray-500' : 'text-gray-400'}`} />
+                    <Mail className={`absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 ${isDarkMode ? 'text-gray-500' : 'text-gray-400'}`} />
                     <input
                       id="email"
                       name="email"
@@ -144,7 +159,7 @@ const Signup: React.FC = () => {
                     Verification Code
                   </label>
                   <div className="mt-1 relative">
-                    <Lock className={`absolute left-3 top-3 h-5 w-5 ${isDarkMode ? 'text-gray-500' : 'text-gray-400'}`} />
+                    <Lock className={`absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 ${isDarkMode ? 'text-gray-500' : 'text-gray-400'}`} />
                     <input
                       id="code"
                       name="code"

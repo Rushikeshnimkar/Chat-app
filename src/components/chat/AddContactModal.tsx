@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { X } from 'lucide-react';
+import { X, Mail, Loader, UserPlus } from 'lucide-react';
 import { id, init } from '@instantdb/react';
 import { Contact } from '../../types';
 import toast from 'react-hot-toast';
+import { useDarkMode } from '../../context/DarkModeContext';
 
 interface AddContactModalProps {
   onClose: () => void;
@@ -15,6 +16,7 @@ export const AddContactModal: React.FC<AddContactModalProps> = ({ onClose, onCon
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const { user } = db.useAuth();
+  const { isDarkMode } = useDarkMode();
 
   // Query existing contacts for the current user
   const { data: contactsData } = db.useQuery({
@@ -35,7 +37,7 @@ export const AddContactModal: React.FC<AddContactModalProps> = ({ onClose, onCon
     const lowerEmail = email.toLowerCase();
     
     try {
-      // Check if contact already exists in the user's contact list
+      // Check if contact already exists
       const existingContact = contactsData?.contacts?.find(
         contact => contact.email.toLowerCase() === lowerEmail
       );
@@ -67,7 +69,6 @@ export const AddContactModal: React.FC<AddContactModalProps> = ({ onClose, onCon
       const newContactId = id();
       const timestamp = Date.now();
 
-      // Create contact with minimal required fields
       await db.transact([
         db.tx.contacts[newContactId].update({
           email: lowerEmail,
@@ -77,7 +78,6 @@ export const AddContactModal: React.FC<AddContactModalProps> = ({ onClose, onCon
         })
       ]);
 
-      // Create new contact object for the UI
       const newContact: Contact = {
         id: newContactId,
         name: contactProfile.username || lowerEmail,
@@ -86,19 +86,37 @@ export const AddContactModal: React.FC<AddContactModalProps> = ({ onClose, onCon
         lastSeen: new Date(timestamp)
       };
 
-      toast.success('Contact added successfully!');
+      toast.success('Contact added successfully!', {
+        duration: 3000,
+        position: 'top-center',
+        style: {
+          background: isDarkMode ? '#1f2937' : '#ffffff',
+          color: isDarkMode ? '#e5e7eb' : '#1f2937',
+          border: `1px solid ${isDarkMode ? '#374151' : '#e5e7eb'}`,
+        },
+        icon: '👋',
+      });
+      
       onContactAdded(newContact);
       onClose();
 
     } catch (error) {
       console.error('Error adding contact:', error);
-      toast.error(error instanceof Error ? error.message : 'Failed to add contact');
+      toast.error(error instanceof Error ? error.message : 'Failed to add contact', {
+        duration: 3000,
+        position: 'top-center',
+        style: {
+          background: isDarkMode ? '#1f2937' : '#ffffff',
+          color: isDarkMode ? '#e5e7eb' : '#1f2937',
+          border: `1px solid ${isDarkMode ? '#374151' : '#e5e7eb'}`,
+        },
+      });
     } finally {
       setLoading(false);
     }
   };
 
-  // Real-time contact validation as user types
+  // Real-time contact validation
   const validateEmail = (email: string) => {
     if (!email.trim() || !contactsData?.contacts) return null;
     
@@ -122,54 +140,114 @@ export const AddContactModal: React.FC<AddContactModalProps> = ({ onClose, onCon
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 backdrop-blur-sm z-50">
-      <div className="bg-white rounded-lg shadow-xl w-full max-w-md">
-        <div className="p-6">
-          <div className="flex justify-between items-center mb-6">
-            <h2 className="text-xl font-semibold">Add New Contact</h2>
+      <div className={`w-full max-w-md rounded-2xl shadow-xl ${
+        isDarkMode ? 'bg-zinc-900 border border-zinc-800' : 'bg-white'
+      }`}>
+        {/* Header */}
+        <div className={`p-6 border-b ${
+          isDarkMode ? 'border-zinc-800' : 'border-gray-100'
+        }`}>
+          <div className="flex justify-between items-center">
+            <div className="flex items-center gap-3">
+              <div className={`p-2.5 rounded-xl ${
+                isDarkMode ? 'bg-zinc-800' : 'bg-gray-100'
+              }`}>
+                <UserPlus size={22} className={
+                  isDarkMode ? 'text-gray-400' : 'text-gray-600'
+                } />
+              </div>
+              <h2 className={`text-xl font-semibold ${
+                isDarkMode ? 'text-gray-200' : 'text-gray-900'
+              }`}>
+                Add New Contact
+              </h2>
+            </div>
             <button
               onClick={onClose}
-              className="text-gray-500 hover:text-gray-700 transition-colors"
+              className={`p-2 rounded-xl transition-colors ${
+                isDarkMode 
+                  ? 'text-gray-400 hover:text-gray-300 hover:bg-zinc-800' 
+                  : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
+              }`}
             >
               <X size={20} />
             </button>
           </div>
+        </div>
 
-          <form onSubmit={handleAddContact} className="space-y-4">
-            <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
-                Email Address
-              </label>
+        {/* Form */}
+        <form onSubmit={handleAddContact} className="p-6 space-y-6">
+          <div>
+            <label htmlFor="email" className={`block text-sm font-medium mb-2 ${
+              isDarkMode ? 'text-gray-300' : 'text-gray-700'
+            }`}>
+              Email Address
+            </label>
+            <div className="relative">
+              <Mail className={`absolute left-3 top-1/2 -translate-y-1/2 ${
+                isDarkMode ? 'text-gray-500' : 'text-gray-400'
+              }`} size={18} />
               <input
                 id="email"
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="Enter contact's email"
-                className={`w-full p-2 border rounded-lg focus:ring-2 transition-shadow ${
+                className={`w-full pl-10 pr-4 py-2.5 rounded-xl transition-colors ${
                   emailError 
-                    ? 'border-red-500 focus:ring-red-200' 
-                    : 'focus:ring-blue-500 focus:border-blue-500'
+                    ? isDarkMode
+                      ? 'border-red-500/50 bg-red-500/10'
+                      : 'border-red-300 bg-red-50'
+                    : isDarkMode
+                      ? 'bg-zinc-800 border-zinc-700 text-gray-200'
+                      : 'bg-white border-gray-200 text-gray-900'
+                } border focus:ring-2 ${
+                  emailError
+                    ? 'focus:ring-red-500/20'
+                    : isDarkMode
+                      ? 'focus:ring-violet-500/20 focus:border-violet-500'
+                      : 'focus:ring-blue-500/20 focus:border-blue-500'
                 }`}
                 disabled={loading}
                 required
               />
-              {emailError && (
-                <p className="mt-1 text-sm text-red-500">{emailError}</p>
-              )}
             </div>
-            <button
-              type="submit"
-              disabled={loading || !email.trim() || !!emailError}
-              className={`w-full py-2 px-4 rounded-lg text-white transition-colors
-                ${loading || !email.trim() || !!emailError
-                  ? 'bg-blue-400 cursor-not-allowed' 
-                  : 'bg-blue-500 hover:bg-blue-600'
-                }`}
-            >
-              {loading ? 'Adding Contact...' : 'Add Contact'}
-            </button>
-          </form>
-        </div>
+            {emailError && (
+              <p className={`mt-2 text-sm ${
+                isDarkMode ? 'text-red-400' : 'text-red-600'
+              }`}>
+                {emailError}
+              </p>
+            )}
+          </div>
+
+          <button
+            type="submit"
+            disabled={loading || !email.trim() || !!emailError}
+            className={`w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl
+              font-medium transition-colors ${
+              loading || !email.trim() || !!emailError
+                ? isDarkMode
+                  ? 'bg-zinc-800 text-gray-500 cursor-not-allowed'
+                  : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                : isDarkMode
+                  ? 'bg-violet-600 hover:bg-violet-700 text-white'
+                  : 'bg-blue-500 hover:bg-blue-600 text-white'
+            }`}
+          >
+            {loading ? (
+              <>
+                <Loader className="animate-spin" size={18} />
+                <span>Adding Contact...</span>
+              </>
+            ) : (
+              <>
+                <UserPlus size={18} />
+                <span>Add Contact</span>
+              </>
+            )}
+          </button>
+        </form>
       </div>
     </div>
   );
