@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Globe, ChevronDown } from 'lucide-react';
+import { Languages, ChevronDown } from 'lucide-react';
 import { useDarkMode } from '../../context/DarkModeContext';
 
 interface LanguageSelectorProps {
@@ -41,7 +41,7 @@ export const LanguageSelector: React.FC<LanguageSelectorProps> = ({
             : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
         }`}
       >
-        <Globe size={18} />
+        <Languages size={18} />
         <span className="text-sm font-medium">
           {selectedLanguage?.name || 'Select Language'}
         </span>

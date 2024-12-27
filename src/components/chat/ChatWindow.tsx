@@ -1,11 +1,12 @@
-import React, { useRef, useEffect, useState } from 'react';
-import { Send, Globe, ArrowLeft, MessageCircle } from 'lucide-react';
+import React, { useReducer, useRef, useEffect } from 'react';
+import { Send,  ArrowLeft, MessageCircle, Languages } from 'lucide-react';
 import { Contact } from '../../types';
 import { id, init } from '@instantdb/react';
 import toast from 'react-hot-toast';
 import { translationService } from '../../services/translationService';
 import { LanguageSelector } from '../common/LanguageSelector';
 import { useDarkMode } from '../../context/DarkModeContext';
+
 
 const db = init({ appId: import.meta.env.VITE_INSTANT_APP_ID });
 
@@ -16,15 +17,68 @@ interface ChatWindowProps {
   isMobileView: boolean;
 }
 
+// Define Action Types
+type ChatAction =
+  | { type: 'SET_MESSAGE'; payload: string }
+  | { type: 'SET_TARGET_LANGUAGE'; payload: string }
+  | { type: 'SET_TRANSLATED_MESSAGES'; payload: { [key: string]: string } }
+  | { type: 'ADD_TRANSLATED_MESSAGE'; payload: { messageId: string; translation: string } }
+  | { type: 'TOGGLE_EMOJI_PICKER' }
+  | { type: 'SET_IS_TRANSLATING'; payload: boolean };
+
+// Define State Type
+interface ChatState {
+  message: string;
+  targetLanguage: string;
+  translatedMessages: { [key: string]: string };
+  showEmojiPicker: boolean;
+  isTranslating: boolean;
+}
+
+// Initial State
+const initialState: ChatState = {
+  message: '',
+  targetLanguage: 'es',
+  translatedMessages: {},
+  showEmojiPicker: false,
+  isTranslating: false,
+};
+
+// Reducer Function
+function chatReducer(state: ChatState, action: ChatAction): ChatState {
+  switch (action.type) {
+    case 'SET_MESSAGE':
+      return { ...state, message: action.payload };
+    case 'SET_TARGET_LANGUAGE':
+      return { ...state, targetLanguage: action.payload, translatedMessages: {} };
+    case 'SET_TRANSLATED_MESSAGES':
+      return { ...state, translatedMessages: action.payload };
+    case 'ADD_TRANSLATED_MESSAGE':
+      return {
+        ...state,
+        translatedMessages: {
+          ...state.translatedMessages,
+          [action.payload.messageId]: action.payload.translation,
+        },
+      };
+    case 'TOGGLE_EMOJI_PICKER':
+      return { ...state, showEmojiPicker: !state.showEmojiPicker };
+    case 'SET_IS_TRANSLATING':
+      return { ...state, isTranslating: action.payload };
+    default:
+      return state;
+  }
+}
+
 export const ChatWindow: React.FC<ChatWindowProps> = ({
   selectedContact,
   currentUserEmail,
   onBack,
   isMobileView
 }) => {
+  const [state, dispatch] = useReducer(chatReducer, initialState);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const [translatedMessages, setTranslatedMessages] = useState<Record<string, string>>({});
-  const [targetLanguage, setTargetLanguage] = useState('hi');
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
   const { isDarkMode } = useDarkMode();
 
   // Modified query to use createdAt field instead of timestamp
@@ -57,29 +111,25 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedContact) return;
-
-    const form = e.currentTarget as HTMLFormElement;
-    const messageInput = form.elements.namedItem('message') as HTMLTextAreaElement;
-    const content = messageInput?.value.trim();
-
-    if (!content) return;
-
-    const messageId = id();
-    const createdAt = Date.now();
+    if (!selectedContact || !state.message.trim()) return;
 
     try {
-      // Updated to use createdAt instead of timestamp
+      const messageId = id();
+      const createdAt = Date.now();
+
       await db.transact([
         db.tx.messages[messageId].update({
-          content,
+          content: state.message.trim(),
           senderId: currentUserEmail,
           receiverId: selectedContact.email,
-          createdAt
-        })
+          createdAt,
+        }),
       ]);
 
-      form.reset();
+      dispatch({ type: 'SET_MESSAGE', payload: '' });
+      if (state.showEmojiPicker) {
+        dispatch({ type: 'TOGGLE_EMOJI_PICKER' });
+      }
       scrollToBottom();
     } catch (error) {
       console.error('Failed to send message:', error);
@@ -89,26 +139,27 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
 
   const handleTranslateMessage = async (messageId: string, content: string) => {
     try {
+      dispatch({ type: 'SET_IS_TRANSLATING', payload: true });
+
       if (!translationService.isInitialized()) {
-        await translationService.init('en', targetLanguage);
+        await translationService.init('en', state.targetLanguage);
       }
 
       const translatedText = await translationService.translate(content);
-      setTranslatedMessages(prev => ({
-        ...prev,
-        [messageId]: translatedText
-      }));
+      dispatch({
+        type: 'ADD_TRANSLATED_MESSAGE',
+        payload: { messageId, translation: translatedText },
+      });
     } catch (error) {
       console.error('Translation error:', error);
       toast.error('Failed to translate message');
+    } finally {
+      dispatch({ type: 'SET_IS_TRANSLATING', payload: false });
     }
   };
 
   const handleLanguageChange = async (language: string) => {
-    setTargetLanguage(language);
-    // Clear previous translations when language changes
-    setTranslatedMessages({});
-    // Reinitialize translator with new language
+    dispatch({ type: 'SET_TARGET_LANGUAGE', payload: language });
     await translationService.init('en', language);
   };
 
@@ -164,14 +215,14 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
                     <div className={`text-sm ${
                       isDarkMode ? 'text-gray-400' : 'text-gray-500'
                     }`}>
-                      {selectedContact.status === 'active' ? 'Online' : 'Offline'}
+                      
                     </div>
                   </div>
                 </div>
               </div>
               <LanguageSelector
                 onLanguageChange={handleLanguageChange}
-                currentLanguage={targetLanguage}
+                currentLanguage={state.targetLanguage}
               />
             </div>
           </div>
@@ -244,22 +295,22 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
                                 : 'hover:bg-gray-100 text-gray-500'
                           }`}
                         >
-                          <Globe size={14} />
+                          <Languages size={14} />
                         </button>
                       </div>
 
                       {/* Translated Message */}
-                      {translatedMessages[msg.id] && (
+                      {state.translatedMessages[msg.id] && (
                         <div className={`mt-2 px-3 py-2 rounded-xl text-sm ${
                           isDarkMode 
                             ? 'bg-zinc-800/50 text-gray-300' 
                             : 'bg-gray-100 text-gray-600'
                         }`}>
-                          <p>{translatedMessages[msg.id]}</p>
+                          <p>{state.translatedMessages[msg.id]}</p>
                           <span className={`text-xs ${
                             isDarkMode ? 'text-gray-500' : 'text-gray-400'
                           }`}>
-                            Translated to {targetLanguage.toUpperCase()}
+                            Translated to {state.targetLanguage.toUpperCase()}
                           </span>
                         </div>
                       )}
@@ -286,12 +337,15 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
           <div className={`p-4 border-t ${
             isDarkMode ? 'border-zinc-800' : 'border-gray-200'
           }`}>
-            <form onSubmit={handleSendMessage} className="flex gap-2">
+            <form onSubmit={handleSendMessage} className="flex gap-2 items-center relative">
+            
               <textarea
-                name="message"
+                ref={textareaRef}
+                value={state.message}
+                onChange={(e) => dispatch({ type: 'SET_MESSAGE', payload: e.target.value })}
                 placeholder="Type a message..."
                 rows={1}
-                className={`w-full p-3 rounded-xl resize-none transition-all ${
+                className={`flex-1 p-3 rounded-xl resize-none transition-all ${
                   isDarkMode 
                     ? 'bg-zinc-800 text-gray-200 placeholder-gray-500 border-zinc-700' 
                     : 'bg-gray-100 text-gray-900 placeholder-gray-500 border-gray-200'
@@ -300,13 +354,15 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
                 }`}
                 maxLength={500}
               />
+              
               <button 
                 type="submit"
+                disabled={!state.message.trim()}
                 className={`p-3 rounded-xl transition-colors ${
                   isDarkMode
                     ? 'bg-violet-600 hover:bg-violet-700 disabled:bg-violet-500/50'
                     : 'bg-blue-500 hover:bg-blue-600 disabled:bg-blue-300'
-                } text-white`}
+                } text-white flex items-center justify-center`}
               >
                 <Send size={20} />
               </button>
