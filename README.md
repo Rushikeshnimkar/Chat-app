@@ -1,13 +1,13 @@
 # ChatApp
 
-ChatApp is chatting application built with React.js, offering a seamless messaging experience. It features a contact list on the left and a dynamic chat window on the right. Leveraging InstantDB for real-time message storage and retrieval, ChatApp ensures instant communication. Additionally, it utilizes IndexedDB for local data storage, providing offline capabilities. Enhanced performance is achieved through Gemini Nano integration.
+ChatApp is chatting application built with React, TypeScript, and InstantDB, offering a seamless messaging experience. It features a contact list on the left and a dynamic chat window on the right. Leveraging InstantDB for real-time message storage and retrieval, ChatApp ensures instant communication. Additionally, it utilizes IndexedDB for local data storage, providing offline capabilities. Enhanced performance is achieved through Gemini Nano integration.
 
 ## Features
 
 - **Real-Time Messaging**: Instant message sending and receiving using InstantDB.
 - **Contact Management**: Easy navigation with a contact list sidebar.
 - **Chat History**: Access and view chat history by selecting a contact.
-- **Translation Service**: Translate messages between different languages seamlessly.
+- **Language translation**: Translate messages between different languages seamlessly.
 
 ## Technologies Used
 
@@ -102,28 +102,48 @@ ChatApp is chatting application built with React.js, offering a seamless messagi
    - Type your message in the input field at the bottom
    - Use the translation feature to translate messages if needed
 
-## Enabling Translation Feature on Chrome
+### Hook Implementation
 
-Before using the translation feature in ChatApp, you need to enable it in Chrome:
+1. **Custom Hooks**
+   - `useDarkMode`: Manages theme preferences across the application
+   - `useTranslation`: Handles language translation functionality
+   - `useAuth`: Manages authentication state and user sessions
+   - `useChat`: Centralizes chat-related operations and state
 
-1. **Prerequisites**:
-   - Use Chrome version 131.0.6778.2 or above (Chrome Canary or Dev channel recommended)
+2. **Context Usage**
+   - DarkModeContext: Global theme management
+   - AuthContext: User authentication state
+   - ChatContext: Real-time messaging state
+   - Each context implemented with proper provider pattern
+
+3. **useReducer Implementation**
+   - Chat state management (messages, translations)
+   - Profile updates and user settings
+   - Contact list management
+   - Provides predictable state updates and better debugging
+
+## Translation Feature Setup
+
+Before using the translation feature in ChatApp, follow these setup instructions:
+
+### Chrome Browser Requirements
+1. **Browser Version**
+   - Chrome version 131.0.6778.2 or above
+   - Chrome Canary or Dev channel recommended
    - Supported on Windows, Mac, and Linux desktop platforms
 
-2. **Enable the Translation API**:
-   - Navigate to `chrome://flags/#translation-api`
-   - Select "Enabled"
-   - For multiple language pairs, select "Enabled without language pack limit"
-   - Relaunch Chrome
+2. **Enable Translation API**
+   - Go to `chrome://flags/#translation-api`
+   - Set to "Enabled"
+   - For multiple languages: select "Enabled without language pack limit"
+   - Restart Chrome
 
-3. **Install Language Components**:
-   - Visit `chrome://components`
-   - Look for TranslateKit components
-   - Wait for language models and translation components to download
+3. **Language Components**
+   - Navigate to `chrome://components`
+   - Locate TranslateKit components
+   - Download required language models
 
-4. **Supported Language Pairs**:
-   - English ⇔ Spanish
-   - English ⇔ Japanese
-   - More languages planned for future updates
+
+For detailed setup instructions and updates, visit [Translation API Documentation](https://docs.google.com/document/d/1bzpeKk4k26KfjtR-_d9OuXLMpJdRMiLZAOVNMuFIejk/edit?tab=t.0)
 
 
