@@ -57,23 +57,6 @@ export interface UpdateMessage {
 
 export type ContactStatus = 'online' | 'offline' | 'typing';
 
-export type MessageType = 'text' | 'image' | 'file';
-
-export enum ChatEvents {
-  MESSAGE_SENT = 'MESSAGE_SENT',
-  MESSAGE_RECEIVED = 'MESSAGE_RECEIVED',
-  CONTACT_ONLINE = 'CONTACT_ONLINE',
-  CONTACT_OFFLINE = 'CONTACT_OFFLINE'
-}
-
-export type ChatAction =
-  | { type: 'SET_USER'; payload: User }
-  | { type: 'SET_CONTACTS'; payload: Contact[] }
-  | { type: 'SELECT_CONTACT'; payload: Contact }
-  | { type: 'SET_MESSAGES'; payload: { contactId: string; messages: Message[] } }
-  | { type: 'ADD_MESSAGE'; payload: { contactId: string; message: Message } }
-  | { type: 'SET_ONLINE_STATUS'; payload: boolean };
-
 export interface Chat {
   id: string;
   participants: string[];

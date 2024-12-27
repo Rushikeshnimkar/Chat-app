@@ -1,31 +1,40 @@
+
 import { useNavigate } from 'react-router-dom';
+import { Moon, Sun, MessageCircle, Shield, Zap, Globe } from 'lucide-react';
+import { useDarkMode } from '../context/DarkModeContext';
 
 const LandingPage: React.FC = () => {
   const navigate = useNavigate();
+  const { isDarkMode, toggleDarkMode } = useDarkMode();
 
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div className={`min-h-screen ${isDarkMode ? 'bg-zinc-900' : 'bg-white'}`}>
       {/* Navigation */}
-      <nav className="bg-whatsapp-teal">
+      <nav className={`fixed w-full z-10 ${isDarkMode ? 'bg-zinc-900/90 backdrop-blur-md' : 'bg-white/90 backdrop-blur-md'}`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center">
-              <img 
-                src="/whatsapp-logo.png" 
-                alt="WhatsApp Clone" 
-                className="h-8 w-auto"
-              />
-              <span className="ml-2 text-white text-xl font-semibold">
-                WhatsApp Web Clone
+              <MessageCircle className={`w-8 h-8 ${isDarkMode ? 'text-violet-500' : 'text-violet-600'}`} />
+              <span className={`ml-2 text-2xl font-bold ${isDarkMode ? 'text-white' : 'text-zinc-900'}`}>
+                Chat
               </span>
             </div>
             <div className="flex items-center space-x-4">
-             
+              <button
+                onClick={toggleDarkMode}
+                className={`p-2 rounded-full ${isDarkMode ? 'bg-zinc-800 text-violet-400' : 'bg-violet-100 text-violet-600'}`}
+              >
+                {isDarkMode ? <Sun size={20} /> : <Moon size={20} />}
+              </button>
               <button
                 onClick={() => navigate('/signup')}
-                className="bg-white text-whatsapp-teal px-4 py-2 rounded-md hover:bg-gray-100"
+                className={`px-4 py-2 rounded-full ${
+                  isDarkMode 
+                    ? 'bg-violet-600 text-white hover:bg-violet-700' 
+                    : 'bg-violet-600 text-white hover:bg-violet-700'
+                } transition duration-300`}
               >
-                Sign Up
+                Get Started
               </button>
             </div>
           </div>
@@ -33,96 +42,104 @@ const LandingPage: React.FC = () => {
       </nav>
 
       {/* Hero Section */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="lg:flex items-center justify-between">
-          <div className="lg:w-1/2">
-            <h1 className="text-4xl font-bold text-gray-900 mb-4">
-              Connect with your friends and family securely
+      <div className="pt-24 pb-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center">
+            <h1 className={`text-5xl md:text-7xl font-bold mb-6 ${isDarkMode ? 'text-white' : 'text-zinc-900'}`}>
+              Connect with the World
+              <span className="text-violet-600">.</span>
             </h1>
-            <p className="text-lg text-gray-600 mb-8">
-              Experience real-time messaging, voice calls, and video chats with end-to-end encryption.
+            <p className={`text-xl mb-8 ${isDarkMode ? 'text-zinc-400' : 'text-zinc-600'}`}>
+              Experience real-time conversations in a whole new way.
             </p>
-            <button
-              onClick={() => navigate('/signup')}
-              className="bg-whatsapp-teal text-white px-6 py-3 rounded-md text-lg hover:bg-whatsapp-dark transition-colors"
-            >
-              Get Started
-            </button>
+            <div className="flex justify-center space-x-4">
+              <button
+                onClick={() => navigate('/signup')}
+                className="px-8 py-3 bg-violet-600 text-white rounded-full hover:bg-violet-700 transition duration-300"
+              >
+                Start Chatting
+              </button>
+              <button
+                onClick={() => navigate('/about')}
+                className={`px-8 py-3 rounded-full ${
+                  isDarkMode 
+                    ? 'bg-zinc-800 text-white hover:bg-zinc-700' 
+                    : 'bg-violet-100 text-violet-600 hover:bg-violet-200'
+                } transition duration-300`}
+              >
+                Learn More
+              </button>
+            </div>
           </div>
-          <div className="lg:w-1/2 mt-8 lg:mt-0">
-            <img 
-              src="/chat-illustration.png" 
-              alt="Chat Illustration" 
-              className="w-full h-auto"
+        </div>
+      </div>
+
+      {/* Features Grid */}
+      <div className={`py-16 ${isDarkMode ? 'bg-zinc-800' : 'bg-violet-50'}`}>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid md:grid-cols-3 gap-8">
+            <FeatureCard
+              icon={<Shield className="w-8 h-8" />}
+              title="End-to-End Encryption"
+              description="Your privacy is our top priority. All messages are fully encrypted."
+              isDarkMode={isDarkMode}
+            />
+            <FeatureCard
+              icon={<Zap className="w-8 h-8" />}
+              title="Lightning Fast"
+              description="Experience instant message delivery with our optimized platform."
+              isDarkMode={isDarkMode}
+            />
+            <FeatureCard
+              icon={<Globe className="w-8 h-8" />}
+              title="Available Everywhere"
+              description="Access your conversations from any device, anywhere in the world."
+              isDarkMode={isDarkMode}
             />
           </div>
         </div>
       </div>
 
-      {/* Features Section */}
-      <div className="bg-white py-12">
+      {/* Stats Section */}
+      <div className={`py-16 ${isDarkMode ? 'bg-zinc-900' : 'bg-white'}`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl font-bold text-center mb-12">
-            Key Features
-          </h2>
-          <div className="grid md:grid-cols-3 gap-8">
-            <FeatureCard
-              icon="🔒"
-              title="End-to-End Encryption"
-              description="Your messages and calls are secured end-to-end"
+          <div className="grid md:grid-cols-3 gap-8 text-center">
+            <StatCard
+              number="10M+"
+              label="Active Users"
+              isDarkMode={isDarkMode}
             />
-            <FeatureCard
-              icon="💬"
-              title="Real-time Chat"
-              description="Instant messaging with real-time updates"
+            <StatCard
+              number="99.9%"
+              label="Uptime"
+              isDarkMode={isDarkMode}
             />
-            <FeatureCard
-              icon="📱"
-              title="Cross-Platform"
-              description="Access your chats from any device"
+            <StatCard
+              number="150+"
+              label="Countries"
+              isDarkMode={isDarkMode}
             />
           </div>
         </div>
       </div>
 
       {/* Footer */}
-      <footer className="bg-gray-800 text-white py-8">
+      <footer className={`py-8 ${isDarkMode ? 'bg-zinc-900 border-t border-zinc-800' : 'bg-white border-t border-zinc-100'}`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid md:grid-cols-3 gap-8">
-            <div>
-              <h3 className="text-lg font-semibold mb-4">About Us</h3>
-              <p className="text-gray-400">
-                A modern WhatsApp Web clone built with React and TypeScript.
-              </p>
+          <div className="flex flex-col md:flex-row justify-between items-center">
+            <div className={`text-sm ${isDarkMode ? 'text-zinc-400' : 'text-zinc-600'}`}>
+              © 2024 Chat. All rights reserved.
             </div>
-            <div>
-              <h3 className="text-lg font-semibold mb-4">Quick Links</h3>
-              <ul className="space-y-2">
-                <li>
-                  <a href="#" className="text-gray-400 hover:text-white">
-                    Privacy Policy
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className="text-gray-400 hover:text-white">
-                    Terms of Service
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className="text-gray-400 hover:text-white">
-                    Contact Us
-                  </a>
-                </li>
-              </ul>
-            </div>
-            <div>
-              <h3 className="text-lg font-semibold mb-4">Connect</h3>
-              <div className="flex space-x-4">
-                <a href="#" className="text-gray-400 hover:text-white">
-                  <span className="sr-only">Twitter</span>
-                  {/* Add social media icons here */}
-                </a>
-              </div>
+            <div className="flex space-x-6 mt-4 md:mt-0">
+              <a href="#" className={`text-sm ${isDarkMode ? 'text-zinc-400 hover:text-white' : 'text-zinc-600 hover:text-zinc-900'}`}>
+                Privacy Policy
+              </a>
+              <a href="#" className={`text-sm ${isDarkMode ? 'text-zinc-400 hover:text-white' : 'text-zinc-600 hover:text-zinc-900'}`}>
+                Terms of Service
+              </a>
+              <a href="#" className={`text-sm ${isDarkMode ? 'text-zinc-400 hover:text-white' : 'text-zinc-600 hover:text-zinc-900'}`}>
+                Contact
+              </a>
             </div>
           </div>
         </div>
@@ -132,16 +149,44 @@ const LandingPage: React.FC = () => {
 };
 
 interface FeatureCardProps {
-  icon: string;
+  icon: React.ReactNode;
   title: string;
   description: string;
+  isDarkMode: boolean;
 }
 
-const FeatureCard: React.FC<FeatureCardProps> = ({ icon, title, description }) => (
-  <div className="p-6 bg-gray-50 rounded-lg text-center">
-    <div className="text-4xl mb-4">{icon}</div>
-    <h3 className="text-xl font-semibold mb-2">{title}</h3>
-    <p className="text-gray-600">{description}</p>
+const FeatureCard: React.FC<FeatureCardProps> = ({ icon, title, description, isDarkMode }) => (
+  <div className={`p-6 rounded-2xl ${
+    isDarkMode 
+      ? 'bg-zinc-800/50 hover:bg-zinc-800' 
+      : 'bg-white hover:bg-violet-50'
+  } transition duration-300`}>
+    <div className={`${isDarkMode ? 'text-violet-400' : 'text-violet-600'} mb-4`}>
+      {icon}
+    </div>
+    <h3 className={`text-xl font-semibold mb-2 ${isDarkMode ? 'text-white' : 'text-zinc-900'}`}>
+      {title}
+    </h3>
+    <p className={`${isDarkMode ? 'text-zinc-400' : 'text-zinc-600'}`}>
+      {description}
+    </p>
+  </div>
+);
+
+interface StatCardProps {
+  number: string;
+  label: string;
+  isDarkMode: boolean;
+}
+
+const StatCard: React.FC<StatCardProps> = ({ number, label, isDarkMode }) => (
+  <div>
+    <div className={`text-4xl font-bold mb-2 ${isDarkMode ? 'text-white' : 'text-zinc-900'}`}>
+      {number}
+    </div>
+    <div className={`${isDarkMode ? 'text-zinc-400' : 'text-zinc-600'}`}>
+      {label}
+    </div>
   </div>
 );
 

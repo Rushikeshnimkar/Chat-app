@@ -5,6 +5,7 @@ import { id, init } from '@instantdb/react';
 import toast from 'react-hot-toast';
 import { translationService } from '../../services/translationService';
 import { LanguageSelector } from '../common/LanguageSelector';
+import { useDarkMode } from '../../context/DarkModeContext';
 
 const db = init({ appId: import.meta.env.VITE_INSTANT_APP_ID });
 
@@ -20,6 +21,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [translatedMessages, setTranslatedMessages] = useState<Record<string, string>>({});
   const [targetLanguage, setTargetLanguage] = useState('es');
+  const { isDarkMode } = useDarkMode();
 
   // Modified query to use createdAt field instead of timestamp
   const { data, isLoading, error } = db.useQuery({
@@ -122,10 +124,12 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
   }
 
   return (
-    <div className="flex-1 flex flex-col h-screen max-h-screen">
+    <div className={`flex-1 flex flex-col h-screen ${isDarkMode ? 'bg-gray-900' : 'bg-gray-50'}`}>
       {selectedContact ? (
         <>
-          <div className="p-4 bg-white border-b flex items-center justify-between">
+          <div className={`p-4 flex items-center justify-between ${
+            isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
+          } border-b`}>
             <h2 className="font-semibold text-lg">{selectedContact.name}</h2>
             <LanguageSelector 
               onLanguageChange={handleLanguageChange}
@@ -143,13 +147,15 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
                   className={`flex flex-col ${msg.senderId === currentUserEmail ? 'items-end' : 'items-start'}`}
                 >
                   <div 
-                    className={`
-                      max-w-[100%] sm:max-w-[70%] md:max-w-[80%] break-words whitespace-pre-wrap rounded-lg p-3
-                      ${msg.senderId === currentUserEmail 
-                        ? 'bg-blue-500 text-white rounded-br-none' 
-                        : 'bg-gray-200 rounded-bl-none'
-                      }
-                    `}
+                    className={`max-w-[70%] break-words rounded-lg p-3 ${
+                      msg.senderId === currentUserEmail
+                        ? isDarkMode 
+                          ? 'bg-blue-600 text-white' 
+                          : 'bg-blue-500 text-white'
+                        : isDarkMode
+                          ? 'bg-gray-800 text-gray-100'
+                          : 'bg-white text-gray-900'
+                    }`}
                   >
                     <p className="text-sm">{msg.content}</p>
                     <div className="flex justify-between items-center mt-1">
@@ -158,8 +164,9 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
                       </span>
                       <button
                         onClick={() => handleTranslateMessage(msg.id, msg.content)}
-                        className={`ml-2 p-1 rounded-full hover:bg-opacity-20 hover:bg-black transition-colors
-                          ${msg.senderId === currentUserEmail ? 'text-blue-100' : 'text-gray-500'}`}
+                        className={`p-2 rounded-full ${
+                          isDarkMode ? 'hover:bg-gray-700 text-gray-300' : 'hover:bg-gray-100 text-gray-600'
+                        }`}
                       >
                         <Globe size={16} />
                       </button>
@@ -168,13 +175,11 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
                   {/* Translated message */}
                   {translatedMessages[msg.id] && (
                     <div 
-                      className={`
-                        mt-1 max-w-[100%] sm:max-w-[70%] md:max-w-[80%] break-words whitespace-pre-wrap rounded-lg p-2
-                        ${msg.senderId === currentUserEmail 
-                          ? 'bg-blue-100 text-blue-900 rounded-br-none' 
-                          : 'bg-gray-100 text-gray-900 rounded-bl-none'
-                        }
-                      `}
+                      className={`mt-1 max-w-[70%] break-words rounded-lg p-2 ${
+                        isDarkMode 
+                          ? 'bg-gray-800 text-gray-300' 
+                          : 'bg-gray-100 text-gray-600'
+                      }`}
                     >
                       <p className="text-sm">{translatedMessages[msg.id]}</p>
                       <span className="text-xs text-gray-500">Translated to {targetLanguage.toUpperCase()}</span>
@@ -183,17 +188,25 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
                 </div>
               ))
             ) : (
-              <p className="text-center text-gray-500">No messages yet</p>
+              <div className={`flex-1 flex flex-col items-center justify-center ${
+                isDarkMode ? 'text-gray-400' : 'text-gray-500'
+              }`}>
+                No messages yet
+              </div>
             )}
             <div ref={messagesEndRef} />
           </div>
 
-          <div className="p-4 border-t bg-white">
+          <div className="p-4 border-t ">
             <form onSubmit={handleSendMessage} className="flex gap-2 flex-col sm:flex-row">
               <textarea
                 name="message"
                 placeholder="Type a message"
-                className="flex-1 p-2 border rounded-lg resize-none min-h-[50px]"
+                className={`w-full p-3 pr-10 rounded-lg resize-none ${
+                  isDarkMode 
+                    ? 'bg-gray-700 text-gray-100 placeholder-gray-400 border-gray-600' 
+                    : 'bg-gray-100 text-gray-900 placeholder-gray-500 border-gray-200'
+                } border focus:outline-none focus:ring-2 focus:ring-blue-500`}
                 maxLength={500}
               />
               <button 
