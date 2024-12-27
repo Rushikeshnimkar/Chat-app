@@ -1,50 +1,129 @@
-# React + TypeScript + Vite
+# ChatApp
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+ChatApp is chatting application built with React.js, offering a seamless messaging experience. It features a contact list on the left and a dynamic chat window on the right. Leveraging InstantDB for real-time message storage and retrieval, ChatApp ensures instant communication. Additionally, it utilizes IndexedDB for local data storage, providing offline capabilities. Enhanced performance is achieved through Gemini Nano integration.
 
-Currently, two official plugins are available:
+## Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- **Real-Time Messaging**: Instant message sending and receiving using InstantDB.
+- **Contact Management**: Easy navigation with a contact list sidebar.
+- **Chat History**: Access and view chat history by selecting a contact.
+- **Translation Service**: Translate messages between different languages seamlessly.
 
-## Expanding the ESLint configuration
+## Technologies Used
 
-If you are developing a production application, we recommend updating the configuration to enable type aware lint rules:
+- **Frontend**:
+  - [React.js](https://reactjs.org/)
+  - [InstantDB](https://www.instantdb.com/) for real-time data handling
+  - [IndexedDB](https://developer.mozilla.org/en-US/docs/Web/API/IndexedDB_API) via `idb` library for offline storage
+  - [Gemini Nano](https://www.geminitech.com/nano) for performance optimization
+  - [Tailwind CSS](https://tailwindcss.com/) for styling
+  - [React Router](https://reactrouter.com/) for navigation
 
-- Configure the top-level `parserOptions` property like this:
 
-```js
-export default tseslint.config({
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
-```
+## Installation
 
-- Replace `tseslint.configs.recommended` to `tseslint.configs.recommendedTypeChecked` or `tseslint.configs.strictTypeChecked`
-- Optionally add `...tseslint.configs.stylisticTypeChecked`
-- Install [eslint-plugin-react](https://github.com/jsx-eslint/eslint-plugin-react) and update the config:
+### Prerequisites
 
-```js
-// eslint.config.js
-import react from 'eslint-plugin-react'
+- **Node.js**: [Download and install Node.js](https://nodejs.org/)
+- **npm** or **Yarn**: Comes with Node.js
 
-export default tseslint.config({
-  // Set the react version
-  settings: { react: { version: '18.3' } },
-  plugins: {
-    // Add the react plugin
-    react,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended rules
-    ...react.configs.recommended.rules,
-    ...react.configs['jsx-runtime'].rules,
-  },
-})
-```
+### Steps
+
+1. **Clone the Repository**
+
+   ```bash
+   git clone https://github.com/your-username/chatapp.git
+   cd chatapp
+   ```
+
+2. **Install Dependencies**
+
+   Using npm:
+
+   ```bash
+   npm install
+   ```
+
+   Or using Yarn:
+
+   ```bash
+   yarn install
+   ```
+
+3. **Set Up Environment Variables**
+
+   Create a `.env` file in the root directory and add:
+
+   ```env
+   VITE_INSTANT_APP_ID=your_instantdb_app_id
+   ```
+
+   *Replace `your_instantdb_app_id` with your actual InstantDB App ID.*
+
+4. **Start the Development Server**
+
+   Using npm:
+
+   ```bash
+   npm run dev
+   ```
+
+   Or using Yarn:
+
+   ```bash
+   yarn dev
+   ```
+
+   The application will be available at ` http://localhost:5173`.
+
+## Usage
+
+1. **Sign Up**
+   - Navigate to the signup page
+   - Enter your email to receive a magic code
+   - Verify your email by entering the received magic code
+   - Upon successful verification, you'll be redirected to the chat page
+
+2. **Update Profile**
+   - Click on the profile icon in the top right corner
+   - Navigate to the profile settings page
+   - Update your username and phone number
+   - Save changes to update your profile information
+
+3. **Add Contact**
+   - Click the "+" button in the contacts section
+   - Enter the email address of the contact you want to add
+   - Click "Add Contact" to save the new contact
+   - The contact will appear in your contacts list once added
+
+4. **Chatting**
+   - Select a contact from your contacts list
+   - View the chat history with the selected contact
+   - Type your message in the input field at the bottom
+   - Use the translation feature to translate messages if needed
+
+## Enabling Translation Feature on Chrome
+
+Before using the translation feature in ChatApp, you need to enable it in Chrome:
+
+1. **Prerequisites**:
+   - Use Chrome version 131.0.6778.2 or above (Chrome Canary or Dev channel recommended)
+   - Supported on Windows, Mac, and Linux desktop platforms
+
+2. **Enable the Translation API**:
+   - Navigate to `chrome://flags/#translation-api`
+   - Select "Enabled"
+   - For multiple language pairs, select "Enabled without language pack limit"
+   - Relaunch Chrome
+
+3. **Install Language Components**:
+   - Visit `chrome://components`
+   - Look for TranslateKit components
+   - Wait for language models and translation components to download
+
+4. **Supported Language Pairs**:
+   - English ⇔ Spanish
+   - English ⇔ Japanese
+   - More languages planned for future updates
+
+
